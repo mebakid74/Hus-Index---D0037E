@@ -1,0 +1,31 @@
+/* Footer.css */
+
+.f-container  {
+    justify-content: space-between;
+}
+
+.f-left {
+    padding-left: 150px;
+    gap: 1rem;
+}
+
+.f-right {
+    padding-right: 150px;
+}
+.f-menu {
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    font-weight: 500;
+}
+.footer-container {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 10px 0;
+    background-color: #ffffff;
+    color: rgba(18, 18, 30, 0.78);
+    margin-top: 50px;
+}
+.image-footer{
+    padding-left: 80px;
+}

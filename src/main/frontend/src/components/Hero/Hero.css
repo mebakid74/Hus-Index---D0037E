@@ -1,0 +1,16 @@
+/* Hero.css */
+
+.hero-container {
+    text-align: center;
+}
+
+.hero-wrapper{
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Luxury Heights",
+    "price": "250,000.00",
+    "detail": "5 sovrum, 4 badrum",
+    "image": "./1.jpg"
+  },
+  {
+    "name": "Vista View",
+    "price": "1,950,000.00",
+    "detail": "4 sovrum, 3 badrum",
+    "image": "./2.jpg"
+  },
+  {
+    "name": "Sunrise Sanctuary",
+    "price": "820,000.00",
+    "detail": "3 sovrum, 2 badrum",
+    "image": "./3.jpg"
+  },
+  {
+    "name": "Golden Grove",
+    "price": "1,400,000.00",
+    "detail": "4 sovrum, 3.5 badrum",
+    "image": "./4.jpg"
+  },
+  {
+    "name": "Tranquil Terrace",
+    "price": "840,000.00",
+    "detail": "3 sovrum, 2 badrum",
+    "image": "./5.jpg"
+  },
+  {
+    "name": "Majestic Manor",
+    "price": "400,000.00",
+    "detail": "6 sovrum, 5 badrum",
+    "image": "./6.jpg"
+  },
+  {
+    "name": "Harbor Haven",
+    "price": "890,000.00",
+    "detail": "4 sovrum, 3 badrum",
+    "image": "./7.jpg"
+  },
+  {
+    "name": "Sunny Side Estates",
+    "price": "950,000.00",
+    "detail": "4 sovrum, 3 badrum",
+    "image": "./8.jpg"
+  },
+  {
+    "name": "Oak Ridge Oasis",
+    "price": "430,000.00",
+    "detail": "3 sovrum, 2 badrum",
+    "image": "./9.jpg"
+  },
+  {
+    "name": "Pinecrest Paradise",
+    "price": "150,000.00",
+    "detail": "5 sovrum, 4 badrum",
+    "image": "./10.jpg"
+  }
+]

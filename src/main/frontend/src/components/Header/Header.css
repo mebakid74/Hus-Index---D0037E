@@ -1,0 +1,47 @@
+/* Header.css */
+
+.h-wrapper{
+    color: white;
+    background-color: #ffffff;
+    box-shadow: var(--shadow);
+    margin-bottom: 50px;
+    padding: 2px;
+}
+
+.logo-container {
+    margin-left: 200px;
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    color: #1f3e72;
+    margin-left: 10px;
+}
+
+.h-container{
+    font-weight: bold;
+    font-size: 38px;
+    justify-content: space-between;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    color: var(--secondary);
+}
+
+.h-menu{
+    margin-left: 200px;
+    font-size: medium;
+    gap: 2.5rem;
+}
+
+.h-menu>*:hover{
+    cursor: pointer;
+}
+
+.h-wrapper .button {
+    margin-bottom: 20px;
+    background: #5a73d7;
+    border: 2px solid white;
+    box-shadow: var(--shadow);
+    border-radius: 10px;
+}

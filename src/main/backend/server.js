@@ -41,16 +41,16 @@ app.use(session({
 
 // Database connection setup
 const db = mysql.createConnection({
-    user: "root",
-    host: "localhost",
-    password: "6%guUk!4muBk^B",
-    database: "interactive",
+    host: "b2956.research.ltu.se",
+    user: "d0037e",
+    password: "0g3JV2XjEhg4GC12p7%D5a2Xl53u8yLr",
+    database: "D0037E_2024",
 })
 
 // Endpoint to fetch all houses
 app.get('/lista_av_alla_fastighter', (re, res) => {
     //const q = "SELECT * FROM houses"
-    const q = "SELECT * FROM sales"
+    const q = "SELECT * FROM HouseSales LIMIT 25"
     db.query(q,(err,data) => {
         if(err) return res.json(err)
         return res.json(data)

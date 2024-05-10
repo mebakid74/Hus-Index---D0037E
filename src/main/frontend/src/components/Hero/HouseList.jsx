@@ -48,8 +48,7 @@ const HouseList = () => {
     }
 
     const filteredHouses = sortedHouses.filter(house => {
-        return house.PropertyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            house.PropertyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        return house.PropertyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
             house.ZipCode.includes(searchQuery);
         {/* house.NewConstruction.toLowerCase().includes(searchQuery.toLowerCase());*/}
     });
@@ -104,7 +103,7 @@ const HouseList = () => {
                     {filteredHouses.map((house, index) => (
                         <tr className = "secondaryText" key={index}>
                             <td>{house.PropertyID}</td>
-                            <td>{house.PropertyName}</td>
+                            {/* <td>{house.PropertyName}</td> */}
                             <td>{house.PropertyType}</td>
                             <td>{house.Bathrooms}</td>
                             <td>{house.Bedrooms}</td>

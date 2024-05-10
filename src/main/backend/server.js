@@ -47,6 +47,15 @@ const db = mysql.createConnection({
     database: "D0037E_2024",
 })
 
+app.get('/list_analysis', (re, res) => {
+    //const q = "SELECT * FROM houses"
+    const q = "SELECT ZipCode, SalePrice, DocumentDate, SqFtTotLiving FROM HouseSales"
+    db.query(q,(err,data) => {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
 // Endpoint to fetch all houses
 app.get('/lista_av_alla_fastighter', (re, res) => {
     //const q = "SELECT * FROM houses"

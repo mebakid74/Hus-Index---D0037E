@@ -7,6 +7,8 @@ import Contact from "./components/Contacts/Contact.jsx";
 import GetStarted from "./components/GetStarted/GetStarted.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import Register from "./components/Account/Register.jsx";
+import PriceAnalysis from "./components/Analysis/PriceAnalysis.jsx";
+import MarketAnalysis from "./components/Analysis/MarketAnalysis.jsx";
 import HouseList from "./components/Hero/HouseList.jsx";
 
 // Function that renders different components.
@@ -20,6 +22,8 @@ function App() {
             <GetStarted/>
             <Footer/>
             <Register/>
+            <PriceAnalysis/>
+            <MarketAnalysis/>
             {/*<HouseList/>*/}
         </div>
     );

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import './HouseList.css'
 
+
+
 // Function that displays the list of houses fetched from the API endpoint, utilizes search query and sorting.
 const HouseList = () => {
 

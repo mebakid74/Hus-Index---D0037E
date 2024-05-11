@@ -55,7 +55,9 @@ const Hero = () => {
                             </div>
                         </div>
                         <div className="flexCenter button">
-                            <a href="klicka: anlysera">Klicka här</a></div>
+                           {/* <a href="klicka: anlysera">Klicka här</a>*/}
+                            <Link to="/PriceAnalysis" target="_blank">Klicka här</Link>
+                        </div>
                     </div>
                 </div>
 

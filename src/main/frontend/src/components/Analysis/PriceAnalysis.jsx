@@ -1,194 +1,214 @@
 import React, { useState, useEffect } from 'react';
-import './PriceAnalysis.css'
 import Chart from 'chart.js/auto';
-import { useRef } from 'react';
-
+import './PriceAnalysis.css';
+import 'chartjs-adapter-date-fns';
 
 const PriceAnalysis = () => {
-
-    const lineCanvasRef = useRef(null);
-    const barCanvasRef = useRef(null);
-
-    const [lineChartData, setLineChartData] = useState({
-        labels: [],
-        datasets: [{
-            label: 'Average House Prices (Line Chart)',
-            data: [],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            pointRadius: 5,
-            pointHitRadius: 10,
-        }],
-    });
-
-    const [barChartData, setBarChartData] = useState({
-        labels: [],
-        datasets: [{
-            label: 'Average House Prices (Bar Chart)',
-            data: [],
-            backgroundColor: 'rgba(192, 75, 192, 0.2)',
-            borderColor: 'rgba(192, 75, 192, 1)',
-            borderWidth: 1,
-        }],
-    });
-
-   {/* const canvasRef = useRef(null);
-        const [chartData, setChartData] = useState({
-        labels: [],
-            datasets: [{
-            label: 'Average House Prices',
-            data: [],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            pointRadius: 5,
-            pointHitRadius: 10,
-    }],
-  });*/}
-
+  const [houseData, setHouseData] = useState([]);
+  const [activeChart, setActiveChart] = useState('line-chart');
+  const [lineChart, setLineChart] = useState(null);
+  const [pieChart, setPieChart] = useState(null);
+  const [stapleChart, setStapleChart] = useState(null); // State for the third chart
+  
   useEffect(() => {
     fetch('http://localhost:8081/list_analysis')
       .then(response => response.json())
       .then(data => {
-        const aggregatedData = {};
-        data.forEach(house => {
-          const year = new Date(house.DocumentDate).getFullYear();
-          if (!aggregatedData[year]) {
-            aggregatedData[year] = {
-              totalPrice: house.SalePrice,
-              count: 1,
-            };
-          } else {
-            aggregatedData[year].totalPrice += house.SalePrice;
-            aggregatedData[year].count++;
-          }
-        });
-
-        const formattedLineData = {
-            labels: Object.keys(aggregatedData),
-            datasets: [{
-                label: 'Average House Prices (Line Chart)',
-                data: Object.keys(aggregatedData).map(year => aggregatedData[year].totalPrice / aggregatedData[year].count),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                pointRadius: 5,
-                pointHitRadius: 10,
-            }],
-        };
-
-        const formattedBarData = {
-            labels: Object.keys(aggregatedData),
-            datasets: [{
-                label: 'Average House Prices (Bar Chart)',
-                data: Object.keys(aggregatedData).map(year => aggregatedData[year].totalPrice / aggregatedData[year].count),
-                backgroundColor: 'rgba(192, 75, 192, 0.2)',
-                borderColor: 'rgba(192, 75, 192, 1)',
-                borderWidth: 1,
-            }],
-        };
-
-        setLineChartData(formattedLineData);
-        setBarChartData(formattedBarData);
+        setHouseData(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
       });
   }, []);
 
-       {/* const formattedData = {
-            labels: Object.keys(aggregatedData),
-            datasets: [{
-              label: 'Average House Prices',
-              data: Object.keys(aggregatedData).map(year => aggregatedData[year].totalPrice / aggregatedData[year].count),
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              pointRadius: 5,
-              pointHitRadius: 10,
-            }],
+  useEffect(() => {
+    if (houseData.length > 0) {
+      // Line Chart
+      const aggregatedData = {};
+      houseData.forEach(house => {
+        const year = new Date(house.DocumentDate).getFullYear();
+        if (!aggregatedData[year]) {
+          aggregatedData[year] = {
+            totalPrice: house.SalePrice,
+            count: 1,
           };
-          setChartData(formattedData);
-        });
-    }, []); */}
+        } else {
+          aggregatedData[year].totalPrice += house.SalePrice;
+          aggregatedData[year].count++;
+        }
+      });
 
-    useEffect(() => {
-      const lineCtx = lineCanvasRef.current.getContext('2d');
-      const lineChart = new Chart(lineCtx, {
-      
-      //  const ctx = canvasRef.current.getContext('2d');
-      //  const chart = new Chart(ctx, {
+      const labels = Object.keys(aggregatedData);
+      const data = labels.map(year => aggregatedData[year].totalPrice / aggregatedData[year].count);
+
+      const lineChartCtx = document.getElementById('line-chart').getContext('2d');
+      if (lineChart) {
+        lineChart.destroy();
+      }
+      const newLineChart = new Chart(lineChartCtx, {
         type: 'line',
-        data: lineChartData,
-        //data: chartData,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Average House Prices',
+            data: data,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            pointRadius: 5,
+            pointHitRadius: 10,
+          }],
+        },
         options: {
           responsive: true,
           scales: {
-            xAxes: [{
+            x: {
               type: 'time',
               time: {
                 unit: 'year',
                 displayFormats: {
-                  year: 'YYYY',
+                  year: 'yyyy',
                 },
               },
-            }],
-            yAxes: [{
+            },
+            y: {
               ticks: {
-                beginAtZero: false, 
+                beginAtZero: false,
               },
-            }],
+            },
           },
         },
       });
-      return () => lineChart.destroy();
-    }, [lineChartData]);
+      setLineChart(newLineChart);
+      // Pie Chart
+      const priceRanges = {
+        'Less than $100,000': 0,
+        '$100,000 - $200,000': 0,
+        '$200,000 - $300,000': 0,
+        '$300,000 - $400,000': 0,
+        '$400,000 - $500,000': 0,
+        'More than $500,000': 0,
+      };
+      houseData.forEach(house => {
+        const price = house.SalePrice;
+        if (price < 100000) {
+          priceRanges['Less than $100,000']++;
+        } else if (price >= 100000 && price < 200000) {
+          priceRanges['$100,000 - $200,000']++;
+        } else if (price >= 200000 && price < 300000) {
+          priceRanges['$200,000 - $300,000']++;
+        } else if (price >= 300000 && price < 400000) {
+          priceRanges['$300,000 - $400,000']++;
+        } else if (price >= 400000 && price < 500000) {
+          priceRanges['$400,000 - $500,000']++;
+        } else {
+          priceRanges['More than $500,000']++;
+        }
+      });
 
-      // return () => chart.destroy();
-    //}, [chartData]);
+      const pieChartCtx = document.getElementById('pie-chart').getContext('2d');
+      if (pieChart) {
+        pieChart.destroy();
+      }
+      const newPieChart = new Chart(pieChartCtx, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(priceRanges),
+          datasets: [{
+            label: 'House Prices Distribution',
+            data: Object.values(priceRanges),
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+              'rgba(255, 159, 64, 0.2)',
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+            ],
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+        },
+      });
+      setPieChart(newPieChart);
+    }
+  }, [houseData]);
 
-    useEffect(() => {
-        const barCtx = barCanvasRef.current.getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: barChartData,
-            options: {
-                responsive: true,
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'year',
-                            displayFormats: {
-                                year: 'YYYY',
-                            },
-                        },
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                        },
-                    }],
-                },
+  const toggleChart = (chartId) => {
+    setActiveChart(chartId);
+  };
+
+  // Function to render staple chart
+  const renderStapleChart = () => {
+    if (houseData.length > 0) {
+      // Get the top 10 most expensive zip codes
+      const sortedData = houseData.sort((a, b) => b.SalePrice - a.SalePrice).slice(0, 10);
+      const zipcodes = sortedData.map(house => house.ZipCode);
+      const prices = sortedData.map(house => house.SalePrice);
+
+      const stapleChartCtx = document.getElementById('staple-chart').getContext('2d');
+      if (stapleChart) {
+        stapleChart.destroy();
+      }
+      const newStapleChart = new Chart(stapleChartCtx, {
+        type: 'bar',
+        data: {
+          labels: zipcodes,
+          datasets: [{
+            label: 'Price vs Zip Code',
+            data: prices,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Zip Code',
+              },
             },
-        });
-        return () => barChart.destroy();
-    }, [barChartData]);
+            y: {
+              title: {
+                display: true,
+                text: 'Price',
+              },
+              ticks: {
+                beginAtZero: true,
+              },
+            },
+          },
+        },
+      });
+      setStapleChart(newStapleChart);
+    }
+  };
 
-    return (
-        <section className ="hero-wrapper">
-            
-            {/*<div>
-            <canvas ref={canvasRef} /> 
-            </div>*/}
-
-            <div>
-                <canvas ref={lineCanvasRef} />
-            </div>
-
-            <div>
-                <canvas ref={barCanvasRef} />
-            </div>
-
-            <PriceAnalysis />
-  
-        </section>
-    )
-
-}
+  return (
+    <div className="chart-container">
+      <div className="buttons-container">
+        <button className='button' onClick={() => toggleChart('line-chart')}>Visa Prisutveckling</button>
+        <button className='button' onClick={() => toggleChart('pie-chart')}>Visa Prisfördelning</button>
+        <button className='button' onClick={() => { toggleChart('staple-chart'); renderStapleChart(); }}>Visa Top 10 dyra områden</button>
+      </div>
+      
+      <canvas id="line-chart" style={{ display: activeChart === 'line-chart' ? 'block' : 'none' }}></canvas>
+      <canvas id="pie-chart" style={{ display: activeChart === 'pie-chart' ? 'block' : 'none' }}></canvas>
+      <canvas id="staple-chart" style={{ display: activeChart === 'staple-chart' ? 'block' : 'none' }}></canvas>
+    </div>
+  );
+};
 
 export default PriceAnalysis;

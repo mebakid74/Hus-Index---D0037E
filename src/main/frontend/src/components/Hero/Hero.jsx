@@ -1,7 +1,8 @@
 // Mebaselassie Kidane Kebede, mebkeb-0
 
 // eslint-disable-next-line no-unused-vars
-import React, {useState} from 'react'
+import React, {useState} from 'react';
+import { Link } from 'react-router-dom';
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { CiViewList } from "react-icons/ci";
@@ -56,7 +57,7 @@ const Hero = () => {
                         </div>
                         <div className="flexCenter button">
                            {/* <a href="klicka: anlysera">Klicka här</a>*/}
-                            <Link to="/PriceAnalysis" target="_blank">Klicka här</Link>
+                            <Link to="/PriceAnalysis">Klicka här</Link>
                         </div>
                     </div>
                 </div>

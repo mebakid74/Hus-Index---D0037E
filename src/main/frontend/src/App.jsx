@@ -14,20 +14,27 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 // Function that renders different components.
 function App() {
     return (
-        <Router> 
-            <div className="App">
-                <Header />
-                <Switch>
-                    <Route exact path="/" component={Hero} />
-                    <Route path="/PriceAnalysis" component={PriceAnalysis} />
-                </Switch>
-                <Houses />
-                <Contact />
-                <GetStarted />
-                <Footer />
-                <Register />
-            </div>
-        </Router>
+   <Router>
+  <div className="App">
+    <Header />
+    <Switch>
+      <Route exact path="/"> {/* Only renders Hero component */}
+        <Hero />
+        <Houses />
+        <Contact />
+        <Register />
+      </Route>
+
+      <Route path="/PriceAnalysis">
+        <PriceAnalysis />  {/* PriceAnalysis component */}
+      </Route>
+
+    </Switch>
+    <Footer />
+
+  </div>
+</Router>
+
     );
 }
 

@@ -1,5 +1,5 @@
 // Mebaselassie Kidane Kebede, mebkeb-0
-
+import { Link } from 'react-router-dom';
 import React, {useEffect} from 'react'
 import './Header.css';
 import Axios from 'axios'
@@ -72,7 +72,7 @@ const Header = () => {
 
                 <div className="flexCenter h-menu paddings header">
 
-                    <a className="button" href="">Hem</a>
+                    <Link to="/" className="button">Hem</Link>
 
                     <a className="button" href="">Om oss</a>
 

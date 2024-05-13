@@ -10,7 +10,8 @@ const PriceAnalysis = () => {
   const [pieChart, setPieChart] = useState(null);
   const [stapleChart, setStapleChart] = useState(null); // State for the third chart
   
-  useEffect(() => {
+
+ /* useEffect(() => {
     fetch('http://localhost:8081/list_analysis')
       .then(response => response.json())
       .then(data => {
@@ -19,11 +20,34 @@ const PriceAnalysis = () => {
       .catch(error => {
         console.error('Error fetching data:', error);
       });
+  }, []); */
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/list_analysis');
+      const data = await response.json();
+      setHouseData(data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   useEffect(() => {
     if (houseData.length > 0) {
-      // Line Chart
+      renderLineChart();
+      renderPieChart();
+    }
+  }, [houseData]);
+
+ /* useEffect(() => {
+    if (houseData.length > 0) { */
+
+    // Line Chart
+    const renderLineChart = () => {
       const aggregatedData = {};
       houseData.forEach(house => {
         const year = new Date(house.DocumentDate).getFullYear();
@@ -45,12 +69,13 @@ const PriceAnalysis = () => {
       if (lineChart) {
         lineChart.destroy();
       }
+
       const newLineChart = new Chart(lineChartCtx, {
         type: 'line',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Average House Prices',
+            label: 'Genomsnittliga fastighetpriser',
             data: data,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -79,19 +104,22 @@ const PriceAnalysis = () => {
         },
       });
       setLineChart(newLineChart);
-      // Pie Chart
+    };
+
+    // Pie Chart
+    const renderPieChart = () => {
       const priceRanges = {
-        'Less than $100,000': 0,
+        'Minder än $100,000': 0,
         '$100,000 - $200,000': 0,
         '$200,000 - $300,000': 0,
         '$300,000 - $400,000': 0,
         '$400,000 - $500,000': 0,
-        'More than $500,000': 0,
+        'Större än $500,000': 0,
       };
       houseData.forEach(house => {
         const price = house.SalePrice;
         if (price < 100000) {
-          priceRanges['Less than $100,000']++;
+          priceRanges['Minder än $100,000']++;
         } else if (price >= 100000 && price < 200000) {
           priceRanges['$100,000 - $200,000']++;
         } else if (price >= 200000 && price < 300000) {
@@ -101,7 +129,7 @@ const PriceAnalysis = () => {
         } else if (price >= 400000 && price < 500000) {
           priceRanges['$400,000 - $500,000']++;
         } else {
-          priceRanges['More than $500,000']++;
+          priceRanges['Större än $500,000']++;
         }
       });
 
@@ -114,7 +142,7 @@ const PriceAnalysis = () => {
         data: {
           labels: Object.keys(priceRanges),
           datasets: [{
-            label: 'House Prices Distribution',
+            label: 'Fastigheter prisfördelning',
             data: Object.values(priceRanges),
             backgroundColor: [
               'rgba(255, 99, 132, 0.2)',
@@ -140,8 +168,8 @@ const PriceAnalysis = () => {
         },
       });
       setPieChart(newPieChart);
-    }
-  }, [houseData]);
+    };
+  /*}, [houseData]);*/
 
   const toggleChart = (chartId) => {
     setActiveChart(chartId);
@@ -159,12 +187,13 @@ const PriceAnalysis = () => {
       if (stapleChart) {
         stapleChart.destroy();
       }
+
       const newStapleChart = new Chart(stapleChartCtx, {
         type: 'bar',
         data: {
           labels: zipcodes,
           datasets: [{
-            label: 'Price vs Zip Code',
+            label: 'Pris mot Postnummer',
             data: prices,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -177,13 +206,13 @@ const PriceAnalysis = () => {
             x: {
               title: {
                 display: true,
-                text: 'Zip Code',
+                text: 'Postnummer',
               },
             },
             y: {
               title: {
                 display: true,
-                text: 'Price',
+                text: 'Pris',
               },
               ticks: {
                 beginAtZero: true,
@@ -196,6 +225,7 @@ const PriceAnalysis = () => {
     }
   };
 
+
   return (
     <div className="chart-container">
       <div className="buttons-container">
@@ -203,10 +233,26 @@ const PriceAnalysis = () => {
         <button className='button' onClick={() => toggleChart('pie-chart')}>Visa Prisfördelning</button>
         <button className='button' onClick={() => { toggleChart('staple-chart'); renderStapleChart(); }}>Visa Top 10 dyra områden</button>
       </div>
-      
+
       <canvas id="line-chart" style={{ display: activeChart === 'line-chart' ? 'block' : 'none' }}></canvas>
+      <p style={{ display: activeChart === 'line-chart' ? 'block' : 'none' }}>
+        Linjediagram som visar de genomsnittliga fastighetpriserna under åren.
+      </p>
+
       <canvas id="pie-chart" style={{ display: activeChart === 'pie-chart' ? 'block' : 'none' }}></canvas>
+      <p style={{ display: activeChart === 'pie-chart' ? 'block' : 'none' }}>
+        Cirkeldiagram som visar fördelningen av fastighetpriser i olika intervall.
+      </p>
+
+      
       <canvas id="staple-chart" style={{ display: activeChart === 'staple-chart' ? 'block' : 'none' }}></canvas>
+         <p style={{ display: activeChart === 'staple-chart' ? 'block' : 'none' }}>
+        Stapeldiagram som visar de 10 dyraste områdena.
+      </p>
+
+
+
+
     </div>
   );
 };

@@ -6,12 +6,12 @@ import { Link } from 'react-router-dom';
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { CiViewList } from "react-icons/ci";
-import HouseList from "./HouseList.jsx";
+// import HouseList from "./HouseList.jsx";
 
 // Function that defines the body section, including HouseList fetched from an API & database.
 const Hero = () => {
 
-    const [houses] = useState([]);
+   // const [houses] = useState([]);
 
     return (
         <section className ="hero-wrapper">
@@ -37,11 +37,13 @@ const Hero = () => {
                                 <FaArrowTrendUp  size={25}/>
                             </div>
                             <div className = "flexColStart detail">
-                                <h1 className="primaryText">Analysera marknadstrender</h1>
+                                <h1 className="primaryText">Gå med i Live budgivning</h1>
                             </div>
                         </div>
                         <div className="flexCenter button">
-                            <a href="klicka: anlysera">Klicka här</a></div>
+                            {/*<a href="klicka: anlysera">Klicka här</a>*/}
+                            <Link to="/MarketAnalysis" target="_blank">Klicka här</Link>
+                        </div>
                     </div>
                 </div>
 
@@ -73,12 +75,14 @@ const Hero = () => {
                             </div>
                         </div>
                         <div className="flexCenter button">
-                            <a href="klicka här: fastigheterlistor ">Klicka här</a>
+                           {/* <a href="klicka här: fastigheterlistor ">Klicka här</a>*/}
                             {/* <a onClick={handleViewAllHouses}>Klicka här</a>*/}
+
+                            <Link to="/HouseList">Klicka här</Link>
                         </div>
                     </div>
                 </div>
-                <HouseList houses={houses} />
+               {/* <HouseList houses={houses} /> */}
             </div>
         </section>
     )

@@ -9,6 +9,7 @@ import Footer from "./components/Footer/Footer.jsx";
 import Register from "./components/Account/Register.jsx";
 import PriceAnalysis from "./components/Analysis/PriceAnalysis.jsx"; 
 import MarketAnalysis from "./components/Analysis/MarketAnalysis.jsx"; 
+import Input from "./components/WebSocket/Input.jsx";
 
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import HouseList from "./components/Hero/HouseList.jsx";
@@ -26,7 +27,8 @@ function App() {
         <Contact />
         <Register />
         <GetStarted />
-        <Footer />      
+        <Footer />
+        <Input />
       </Route>
 
       <Route path="/HouseList">

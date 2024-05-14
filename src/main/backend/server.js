@@ -20,7 +20,7 @@ const saltRounds = 10
 // Configuring middleware
 app.use(express.json());
 app.use(cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5174"],
     methods: ["GET", "POST"],
     credentials: true // Allow cookies to be sent and received
 }));
@@ -38,6 +38,71 @@ app.use(session({
         expires: 60 * 60 * 24, // Session expiration time (in seconds)
     },
 }));
+
+// Web sockets
+//const http = require("http");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
+const httpServer = createServer();
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+    },
+});
+
+// To store user messages
+let userMessages = []
+io.on("connection", (socket) => {
+    //console.log(socket);
+    console.log(`User connected: ${socket.id}`);
+
+    // Listen for incoming messages
+    socket.on('messages', (message) => {
+       // userMessages.push({ ...message, id: socket.id});
+        userMessages.push(message);
+        console.log(userMessages);
+        //console.log(socket.id);
+
+        // Send updated user messages to all clients
+        io.emit('userMessages', userMessages);
+
+        // Cleanup on disconnect
+        socket.on('disconnect', () => {
+            console.log(`User disconnected: ${socket.id}`);
+        });
+
+        // Refresh the input every 5 seconds
+        setInterval(() => {
+            socket.emit('userMessages', userMessages);
+        }, 5000);
+    });
+});
+
+
+
+httpServer.listen(3000, () => {
+   console.log("Server connected.")
+})
+
+{/*const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+    },
+});
+io.on("connection", (socket) => {
+    console.log('Användare ansluten: ${socket.id}');
+
+    socket.on("sendMessage", (data) => {
+        console.log(data);
+        socket.broadcast.emit("receiveMessage", data);
+        //io.emit("receiveMessage", data);
+    });
+});*/}
+
 
 // Database connection setup
 const db = mysql.createConnection({
@@ -134,6 +199,6 @@ app.get('/', (re, res) => {
 });
 
 // Start the server
-app.listen(8081, () => {
+/*app.listen(8081, () => {
     console.log('Server has started..')
-});
+});*/

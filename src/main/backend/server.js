@@ -19,11 +19,22 @@ const saltRounds = 10
 
 // Configuring middleware
 app.use(express.json());
+
 app.use(cors({
     origin: ["http://localhost:5174"],
     methods: ["GET", "POST"],
     credentials: true // Allow cookies to be sent and received
 }));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if(req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Methods', 'GET');
+      return res.status(200).json({});
+    }
+    next();
+  });
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -116,7 +127,7 @@ app.get('/list_analysis', (re, res) => {
 })
 
 // Start listening on port 3001 for API requests
-app.listen(3001, () => {
+app.listen(8081, () => {
     console.log("API server listening on port 3001");
 });
 

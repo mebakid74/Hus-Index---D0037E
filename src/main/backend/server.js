@@ -58,6 +58,9 @@ io.on("connection", (socket) => {
     //console.log(socket);
     console.log(`User connected: ${socket.id}`);
 
+    // Send initial messages to the connected client
+    socket.emit('userMessages', userMessages);
+
     // Listen for incoming messages
     socket.on('messages', (message) => {
        // userMessages.push({ ...message, id: socket.id});
@@ -73,36 +76,21 @@ io.on("connection", (socket) => {
             console.log(`User disconnected: ${socket.id}`);
         });
 
-        // Refresh the input every 5 seconds
-        setInterval(() => {
+        // Refresh the messages for all clients every 5 seconds
+       const interval = setInterval(() => {
             socket.emit('userMessages', userMessages);
         }, 5000);
+
+        socket.on('disconnect', () => {
+            clearInterval(interval);
+        });
     });
 });
 
-
-
+// Start listening on port 3001 for WebSocket connections
 httpServer.listen(3000, () => {
-   console.log("Server connected.")
+   console.log("WebSocket server is connected.")
 })
-
-{/*const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST"],
-    },
-});
-io.on("connection", (socket) => {
-    console.log('Användare ansluten: ${socket.id}');
-
-    socket.on("sendMessage", (data) => {
-        console.log(data);
-        socket.broadcast.emit("receiveMessage", data);
-        //io.emit("receiveMessage", data);
-    });
-});*/}
-
 
 // Database connection setup
 const db = mysql.createConnection({
@@ -116,11 +104,23 @@ app.get('/list_analysis', (re, res) => {
     //const q = "SELECT * FROM houses"
     const q = "SELECT ZipCode, SalePrice, DocumentDate, SqFtTotLiving FROM HouseSales"
     db.query(q,(err,data) => {
-        if(err) return res.json(err)
-        return res.json(data)
+        //if(err) return res.json(err)
+        //return res.json(data)
+        if (err) {
+            console.error('Error executing query:', err);
+            return res.status(500).json(err);
+        }
+        console.log('Fetched houses:', data);
+        return res.json(data);
     })
 })
 
+// Start listening on port 3001 for API requests
+app.listen(3001, () => {
+    console.log("API server listening on port 3001");
+});
+
+/*************** Lab 1, 2, 3 stuff **********************/
 // Endpoint to fetch all houses
 app.get('/lista_av_alla_fastighter', (re, res) => {
     //const q = "SELECT * FROM houses"

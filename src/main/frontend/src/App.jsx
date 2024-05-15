@@ -8,11 +8,14 @@ import GetStarted from "./components/GetStarted/GetStarted.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import Register from "./components/Account/Register.jsx";
 import PriceAnalysis from "./components/Analysis/PriceAnalysis.jsx"; 
-import MarketAnalysis from "./components/Analysis/MarketAnalysis.jsx"; 
+import MarketAnalysis from "./components/WebSocket/MarketAnalysis.jsx";
 import Input from "./components/WebSocket/Input.jsx";
+import BidChart from "./components/WebSocket/BidChart.jsx";
+import HouseList from "./components/Hero/HouseList.jsx";
 
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import HouseList from "./components/Hero/HouseList.jsx";
+
+
 
 // Function that renders different components.
 function App() {
@@ -29,6 +32,7 @@ function App() {
         <GetStarted />
         <Footer />
         <Input />
+        <BidChart />
       </Route>
 
       <Route path="/HouseList">

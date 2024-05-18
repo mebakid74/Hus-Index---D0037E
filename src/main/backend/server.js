@@ -1,107 +1,77 @@
 // Mebaselassie Kidane Kebede, mebkeb-0
-
 // Importing necessary modules
 const express = require('express');
 const mysql = require ('mysql');
+const socketIO = require('socket.io');
 const cors = require('cors');
+const http = require('http');
 
 // Initializing Express app
 const app = express();
 
-// Middleware setup
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
 
-const bcrypt = require('bcrypt');
-const {response, request} = require("express");
-const saltRounds = 10
+const wsServer = http.createServer();
+const io = socketIO(wsServer, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
+wsServer.listen(3000, () => {
+    console.log(`WebSocket Server is running on port 3000`);
+});
 
 // Configuring middleware
 app.use(express.json());
 
-app.use(cors({
-    origin: ["http://localhost:5174"],
-    methods: ["GET", "POST"],
-    credentials: true // Allow cookies to be sent and received
-}));
+
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    // Handle joining a room
+    socket.on('joinRoom', (room) => {
+        console.log(`User joined room: ${room}`);
+        socket.join(room); // Join the specified room
+    });
+
+    // Handle leaving a room
+    socket.on('leaveRoom', (room) => {
+        console.log(`User left room: ${room}`);
+        socket.leave(room); // Leave the specified room
+    });
+
+    // Handle chat messages within a room
+    socket.on('chatMessage', (data) => {
+        console.log(`Message received in room ${data.room}: ${data.message}`);
+        io.to(data.room).emit('chatMessage', data); // Emit the message to all users in the room
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
+
+
+app.listen(8081, () => {
+    console.log("API server listening on port 8081");
+});
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     if(req.method === 'OPTIONS') {
-      res.header('Access-Control-Allow-Methods', 'GET');
+      res.header('Access-Control-Allow-Methods', 'GET', 'POST');
       return res.status(200).json({});
     }
     next();
   });
 
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true}));
 
-// Session configuration
-app.use(session({
-    key: "idUser",
-    secret: "Hus Index användare",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        expires: 60 * 60 * 24, // Session expiration time (in seconds)
-    },
-}));
-
-// Web sockets
-//const http = require("http");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-
-const httpServer = createServer();
-const io = new Server(httpServer, {
-    cors: {
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST"],
-    },
-});
-
-// To store user messages
-let userMessages = []
-io.on("connection", (socket) => {
-    //console.log(socket);
-    console.log(`User connected: ${socket.id}`);
-
-    // Send initial messages to the connected client
-    socket.emit('userMessages', userMessages);
-
-    // Listen for incoming messages
-    socket.on('messages', (message) => {
-       // userMessages.push({ ...message, id: socket.id});
-        userMessages.push(message);
-        console.log(userMessages);
-        //console.log(socket.id);
-
-        // Send updated user messages to all clients
-        io.emit('userMessages', userMessages);
-
-        // Cleanup on disconnect
-        socket.on('disconnect', () => {
-            console.log(`User disconnected: ${socket.id}`);
-        });
-
-        // Refresh the messages for all clients every 5 seconds
-       const interval = setInterval(() => {
-            socket.emit('userMessages', userMessages);
-        }, 5000);
-
-        socket.on('disconnect', () => {
-            clearInterval(interval);
-        });
-    });
-});
-
-// Start listening on port 3001 for WebSocket connections
-httpServer.listen(3000, () => {
-   console.log("WebSocket server is connected.")
-})
 
 // Database connection setup
 const db = mysql.createConnection({
@@ -127,9 +97,7 @@ app.get('/list_analysis', (re, res) => {
 })
 
 // Start listening on port 3001 for API requests
-app.listen(8081, () => {
-    console.log("API server listening on port 3001");
-});
+
 
 /*************** Lab 1, 2, 3 stuff **********************/
 // Endpoint to fetch all houses
@@ -204,12 +172,8 @@ app.post("/login", (req, res) => {
     );
 });
 
-// Test endpoint
+
 app.get('/', (re, res) => {
     return res.json('From Backend Side Server')
 });
 
-// Start the server
-/*app.listen(8081, () => {
-    console.log('Server has started..')
-});*/

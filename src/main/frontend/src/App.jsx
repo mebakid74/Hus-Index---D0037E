@@ -1,5 +1,4 @@
 // Mebaselassie Kidane Kebede, mebkeb-0
-
 import Header from "./components/Header/Header.jsx";
 import Hero from "./components/Hero/Hero.jsx";
 import Houses from "./components/Coursel/Houses.jsx";
@@ -9,8 +8,6 @@ import Footer from "./components/Footer/Footer.jsx";
 import Register from "./components/Account/Register.jsx";
 import PriceAnalysis from "./components/Analysis/PriceAnalysis.jsx"; 
 import MarketAnalysis from "./components/WebSocket/MarketAnalysis.jsx";
-import Input from "./components/WebSocket/Input.jsx";
-import BidChart from "./components/WebSocket/BidChart.jsx";
 import HouseList from "./components/Hero/HouseList.jsx";
 
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
@@ -31,8 +28,6 @@ function App() {
         <Register />
         <GetStarted />
         <Footer />
-        <Input />
-        <BidChart />
       </Route>
 
       <Route path="/HouseList">

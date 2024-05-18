@@ -1,131 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import './MarketAnalysis.css';
+import React, { useState } from 'react';
 import { io } from 'socket.io-client';
-import Input from './Input.jsx';
-import BidChart from "./BidChart.jsx";
 
 const MarketAnalysis = () => {
-    const [message, setMessage] = useState({});
+    const [room, setRoom] = useState('');
+    const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [socket, setSocket] = useState(null);
 
-    const [houses, setHouses] = useState([]);
-    const [selectedHouse, setSelectedHouse] = useState('');
+    const connectToSocket = () => {
+        const newSocket = io('http://localhost:3000'); 
+        setSocket(newSocket);
 
-    // Initialize socket outside of component to avoid reinitialization
-    const socket = io('http://localhost:3000');
+        newSocket.on('connect', () => {
+            console.log('Connected to WebSocket server');
+        });
 
-    // Handle input changes
-    const handleInput = (e) => {
-        const { id, value } = e.target;
-        setMessage((prev) => ({
-            ...prev,
-            [id]: value,
-        }));
+        newSocket.on('disconnect', () => {
+            console.log('Disconnected from WebSocket server');
+        });
+
+        newSocket.on('chatMessage', (data) => {
+            console.log(`Message received: ${data.message}`);
+            setMessages([...messages, data]); // Add the received message to the message list
+        });
     };
 
-    // Use useEffect to set up socket event listeners
-    useEffect(() => {
-        socket.on('connect', () => {
-            console.log('Connected to the server');
-        });
-
-        socket.on('userMessages', (userMessages) => {
-            console.log('Received userMessages:', userMessages);
-            setMessages(Array.isArray(userMessages) ? userMessages : []);
-        });
-
-        // Fetch houses from the server
-        fetch('http://localhost:3001/list_analysis')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response fail');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Fetched houses:', data);
-                setHouses(data);
-            })
-            .catch(error => console.error('Error fetching houses:', error));
-
-        // Cleanup on component unmount
-        return () => {
-            socket.off('connect');
-            socket.off('userMessages');
-        };
-    }, [socket]);
-
-    // Function to emit messages
-   /* const placeBet = () => {
-        socket.emit('messages', message);
-    };*/
-    const placeBet = () => {
-        if (selectedHouse) {
-            const bet = { ...message, houseId: selectedHouse };
-            socket.emit('messages', bet);
-        } else {
-            alert("Vänligen väl en fastighet för att lägg bud");
+    const joinRoom = () => {
+        if (socket) {
+            socket.emit('joinRoom', room);
+            console.log(`Joined room: ${room}`);
         }
     };
 
-    const filteredMessages = messages.filter(message => message.houseId === selectedHouse);
+    const leaveRoom = () => {
+        if (socket) {
+            socket.emit('leaveRoom', room);
+            console.log(`Left room: ${room}`);
+        }
+    };
+
+    const sendMessage = () => {
+        if (socket) {
+            socket.emit('chatMessage', { room, message }); // Send the message to the server
+            setMessage(''); // Clear the message input field
+        }
+    };
 
     return (
-        <section className="hero-wrapper">
+        <div>
+            <select value={room} onChange={(e) => setRoom(e.target.value)}>
+                <option value="">Select a room</option>
+                <option value="1">Room 1</option>
+                <option value="2">Room 2</option>
+                <option value="3">Room 3</option>
+                <option value="4">Room 4</option>
+                <option value="5">Room 5</option>
+            </select>
+            <button onClick={connectToSocket}>Connect</button>
+            <button onClick={joinRoom}>Join Room</button>
+            <button onClick={leaveRoom}>Leave Room</button>
             <div>
-                <h1 className="primaryText">Fastigheter budgivning</h1>
-
-                <div className="filter flexCenter r-head">
-                    <select onChange={(e) =>
-                        setSelectedHouse(e.target.value)} value={selectedHouse}>
-
-                        <option value="" disabled>Välj fastighet..</option>
-
-                        {houses.map((house, index) => (
-                            <option key={index} value={house.ZipCode}>
-                                {house.ZipCode} - {house.SalePrice} - {house.DocumentDate} - {house.SqFtTotLiving}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="filter flexCenter r-head">
-                    <Input id="id" placeholder="Ange användar-ID.." handleInput={handleInput} />
-                </div>
-
-                <div className="filter flexCenter r-head">
-                    <Input id="amount" placeholder="Lägg bud summan.." handleInput={handleInput} />
-                </div>
-
-                <button className="button" onClick={placeBet}>Godkänd</button>
-
-                {messages.length > 0 ? (
-                    <>
-                        {/* <BidChart bids={messages.filter(message => message.houseId === selectedHouse)} /> */}
-                    <BidChart bids={filteredMessages} />
-                    <table>
-                    <thead>
-                    <tr>
-                        <th>Fastighet ID</th>
-                        <th>Nuvarande bud summa</th>
-                        <th>Fastighet försäljningspris</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {filteredMessages.map((message, index) => (
-                        <tr className="secondaryText" key={index}>
-                            <td>{message.id}</td>
-                            <td>{message.amount}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>)
-                    </>
-                ): (
-                    <></>
-                    )}
+                {messages.map((msg, index) => (
+                    <div key={index}>
+                        {msg.user}: {msg.message}
+                    </div>
+                ))}
             </div>
-        </section>
+            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} />
+            <button onClick={sendMessage}>Send</button>
+        </div>
     );
 };
 

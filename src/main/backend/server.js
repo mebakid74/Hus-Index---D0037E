@@ -26,14 +26,31 @@ wsServer.listen(3000, () => {
 // Configuring middleware
 app.use(express.json());
 
+// Keep track of previous bids
+const roomHighestBids = {};
 
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    // Handle joining a room
+    /* Handle joining a room
     socket.on('joinRoom', (room) => {
         console.log(`User joined room: ${room}`);
         socket.join(room); // Join the specified room
+    }); */
+
+    socket.on('joinRoom', (room) => {
+        console.log(`User joined room: ${room}`);
+        socket.join(room);
+        if (!roomHighestBids[room]) {
+            roomHighestBids[room] = {
+                highestBid: 0,
+                bids: []
+            };
+        }
+        // Send the current highest bid and bid history to the user who just joined
+        socket.emit('chatMessage', { 
+            highestBid: roomHighestBids[room].highestBid,
+            bids: roomHighestBids[room].bids});
     });
 
     // Handle leaving a room
@@ -42,10 +59,23 @@ io.on('connection', (socket) => {
         socket.leave(room); // Leave the specified room
     });
 
-    // Handle chat messages within a room
+    /* Handle chat messages within a room
     socket.on('chatMessage', (data) => {
         console.log(`Message received in room ${data.room}: ${data.message}`);
         io.to(data.room).emit('chatMessage', data); // Emit the message to all users in the room
+    }); */
+
+    socket.on('chatMessage', (data) => {
+    const bid = parseFloat(data.message);
+    if (bid > roomHighestBids[data.room].highestBid) {
+         roomHighestBids[data.room].highestBid = bid;
+    }
+    roomHighestBids[data.room].bids.push({ message: bid, user: socket.id });
+    io.to(data.room).emit('chatMessage', {
+        highestBid: roomHighestBids[data.room].highestBid,
+        bids: roomHighestBids[data.room].bids
+    });
+    console.log(`New bid in room ${data.room}: ${bid}`);
     });
 
     // Handle disconnection

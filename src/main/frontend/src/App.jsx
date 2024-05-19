@@ -13,7 +13,6 @@ import HouseList from "./components/Hero/HouseList.jsx";
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 
-
 // Function that renders different components.
 function App() {
     return (

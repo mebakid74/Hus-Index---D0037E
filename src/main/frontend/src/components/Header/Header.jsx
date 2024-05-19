@@ -9,57 +9,55 @@ import Register from "../Account/Register.jsx";
 // Function that defines the header section utilizing states hooks and Axios to handle request from server.
 const Header = () => {
 
-    const [loginEmail, setLoginEmail] = useState('');
+    const [loginUser, setLoginUser] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
-    const [signupEmail, setSignupEmail] = useState('');
-    const [signupPassword, setSignupPassword] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [adminPopup, setAdminPopup] = useState(false);
 
-    const handleLoginEmailChange = (e) => {
-        setLoginEmail(e.target.value);
+    const handleLoginUserChange = (e) => {
+        setLoginUser(e.target.value);
     };
 
     const handleLoginPasswordChange = (e) => {
         setLoginPassword(e.target.value);
     };
 
-    const handleSignupEmailChange = (e) => {
-        setSignupEmail(e.target.value);
+    const adminLogin = () => {
+        const predefinedAdmin = {
+            username: 'admin',
+            password: 'pass'
+        };
+        if (loginUser === predefinedAdmin.username && loginPassword === predefinedAdmin.password) {
+            setIsAdmin(true);
+            setAdminPopup(false);
+        } else {
+            alert('Ogiltiga administratörsuppgifter');
+        }
     };
 
-    const handleSignupPasswordChange = (e) => {
-        setSignupPassword(e.target.value);
-    };
+    const AdminPanel = () => {
+        const [bids, setBids] = useState([]);
 
-    const [buttonPopup, setButtonPopup] = useState(false);
+        useEffect(() => {
+            // Fetch bid history from server
+            const fetchBids = async () => {
+                try {
+                    const response = await Axios.get('http://localhost:3000/admin/bids');
+                    setBids(response.data);
+                } catch (error) {
+                    console.error('Error fetching bids:', error);
+                }
+            };
+            fetchBids();
+        }, []);
 
-    const [LoginStatus, setLoginStatus] = useState("");
-
-    Axios.defaults.withCredentials = true;
-    const reg = () => {
-        Axios.post('http://localhost:8081/register', {
-            email: signupEmail,
-            password: signupPassword,
-        }).then((response) => {
-            console.log(response);
-        });
-    };
-
-    const log = () => {
-        Axios.post('http://localhost:8081/login', {
-            email: loginEmail,
-            password: loginPassword,
-        }).then((response) => {
-            console.log(response);
-        });
-    };
-
-    useEffect(() => {
-        Axios.get("http://localhost:5173/login").then((response) => {
-            if (response.data.loggedIn === true) {
-                setLoginStatus(response.data.user[0].email);
-            }
-        });
-    }, [])
+    return (
+        <div>
+            <h2>Bid History</h2>
+            <pre>{JSON.stringify(bids, null, 2)}</pre>
+        </div>
+    );
+};
 
     return (
         <section className = "h-wrapper">
@@ -78,71 +76,34 @@ const Header = () => {
 
                     <a className="button" href="">Kontakt</a>
 
-                    <button className="button" onClick={() =>
-                        setButtonPopup(true)}> Konto
-                    </button>
+                    <button className="button" onClick={() => setAdminPopup(true)}>Konto</button>
 
                 </div>
 
                 <div className = "kontoinfo">
-                <Register trigger = {buttonPopup} setTrigger = {setButtonPopup}>
-                    <h2 className="primaryText flexCenter innerWidth h-container">
-                        Logga in
-                    </h2>
-                    <form className="form hero-wrapper">
-                        <div className="form-group">
-                            <label className=" secondaryText flexCenter innerWidth h-container">
-                                Användarnamn:
-                            </label>
-                            <input type="email" id="login-email" value={loginEmail}
-                                   onChange={handleLoginEmailChange} required />
-                        </div>
-
-                        <div className="form-group flexColStart row">
-                            <label className="secondaryText flexCenter innerWidth h-container">
-                                Lösenord:
-                            </label>
-                            <input type="password" id="login-password" value={loginPassword}
-                                   onChange={handleLoginPasswordChange} required />
-                        </div>
-
-                        <div>
-                            <button type="submit" onClick={log}>Logga in</button>
-                        </div>
-                    </form>
-                </Register>
-
-                <Register trigger = {buttonPopup} setTrigger = {setButtonPopup}>
-                    <h3 className="primaryText flexCenter innerWidth h-container">
-                        Skapa konto
-                    </h3>
-
-                    <form className="form">
-                        <div className="form-group">
-                            <label className=" secondaryText flexCenter innerWidth h-container">
-                                Användarnamn:
-                            </label>
-                            <input type="email" id="signup-email" value={signupEmail}
-                                   onChange={handleSignupEmailChange} required />
-                        </div>
-
-                        <div className="form-group flexColStart row">
-                            <label className="secondaryText flexCenter innerWidth h-container">
-                                Lösenord:
-                            </label>
-                            <input type="password" id="signup-password" value={signupPassword}
-                                   onChange={handleSignupPasswordChange} required />
-                        </div>
-
-                        <div>
-                            <button type="submit" onClick={reg}> Skapa konto</button>
-                        </div>
-                    </form>
+                <Register trigger={adminPopup} setTrigger={setAdminPopup}>
+                <h2 className="primaryText flexCenter innerWidth h-container">Logga in</h2>
+                <form className="form hero-wrapper">
+                    <div className="form-group">
+                        <label className=" secondaryText flexCenter innerWidth h-container"> Användarnamn: </label>
+                        <input type="email" id="admin-email" value={loginUser} onChange={handleLoginUserChange} required />
+                    </div>
+                    <div className="form-group flexColStart row">
+                        <label className="secondaryText flexCenter innerWidth h-container">Lösenord:</label>
+                        <input type="password" id="admin-password" value={loginPassword} onChange={handleLoginPasswordChange} required />
+                    </div>
+                    <div>
+                        <button className="button" type="button" onClick={adminLogin}>Logga in</button>
+                    </div>
+                </form>
                 </Register>
                 </div>
             </div>
+            {isAdmin && <AdminPanel />}
         </section>
     )
 }
+
+
 
 export default Header;

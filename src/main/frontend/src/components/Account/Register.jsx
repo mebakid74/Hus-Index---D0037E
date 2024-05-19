@@ -8,7 +8,7 @@ function Register(props) {
         <section className="flexCenter paddings innerWidth h-container">
         <div className="popup">
                 <div className="popup-inner">
-                    <button className="close-btn" onClick={() => props.setTrigger(false)}>Stäng</button>
+                    <button className="close-btn" onClick={() => props.setTrigger(false)}>X</button>
                     { props.children}
                 </div>
         </div>
@@ -16,4 +16,4 @@ function Register(props) {
     ) : "";
 }
 
-export default Register;
+export default Register; 

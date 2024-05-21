@@ -49,6 +49,9 @@ io.on('connection', (socket) => {
         if (!roomUserIds[roomName]) {
             roomUserIds[roomName] = { nextUserId: 1, bids: [] };
         }
+
+        // Emit the current bids to the new user
+        socket.emit('bidsUpdate', roomName, roomUserIds[roomName].bids);
     });
 
 
@@ -68,6 +71,7 @@ io.on('connection', (socket) => {
                 if (!userEntry.userId) {
                     userEntry.userId = roomUserIdsForRoom.nextUserId;
                     roomUserIdsForRoom.nextUserId = roomUserIdsForRoom.nextUserId + 1; // Increment next ID
+                     
                 }
                 userEntry.bidCount = (userEntry.bidCount || 0) + 1; // Increment bid count
 
@@ -78,13 +82,8 @@ io.on('connection', (socket) => {
                 roomUserIdsForRoom.bids.push(updatedBid);
 
                 // Broadcast the updated message with the user ID
-                io.to(roomName).emit('message', roomName, updatedBid);
-
-
-                const roomBids = (roomUserIds[roomName] && roomUserIds[roomName].bids) || [];
-                io.to(roomName).emit('message1', roomName, roomBids);
-
-                
+                io.to(roomName).emit('newBid', roomName, updatedBid);
+              
                 console.log(`room ${roomName}:`, updatedBid);
 
             } else {

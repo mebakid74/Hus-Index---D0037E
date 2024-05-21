@@ -21,65 +21,44 @@ const MarketAnalysis = () => {
     };
   }, []);
 
-  
   useEffect(() => {
     if (socket) {
-      socket.on('message1', (roomName, updatedBid) => {
-        // Handle the received bid message here
+      socket.on('bidsUpdate', (roomName, bids) => {
+        console.log('Recieved bidsUpdate:', roomName, bids);
+        setHouseBids(prevBids => ({
+          ...prevBids,
+          [roomName]: bids
+        }));
+      });
+
+      socket.on('newBid', (roomName, updatedBid) => {
         setHouseBids(prevBids => ({
           ...prevBids,
           [roomName]: [...(prevBids[roomName] || []), updatedBid]
         }));
       });
     }
+
     return () => {
       if (socket) {
-        socket.off('message');
+        socket.off('bidsUpdate');
+        socket.off('newBid');
       }
     };
   }, [socket]);
 
-  
-
-
   useEffect(() => {
     if (socket && selectedRoom !== "") {
       socket.emit('subscribeToBids', selectedRoom);
     }
-  
-    return () => {
-      // Clean up the subscription when socket or selectedRoom changes
-      if (socket && selectedRoom !== "") {
-        socket.off('bidsUpdate');
-      }
-    };
   }, [socket, selectedRoom]);
-
-
-
-  useEffect(() => {
-    if (socket && selectedRoom !== "") {
-      // Listen for bid updates
-      socket.emit('subscribeToBids', selectedRoom);
-      socket.on('bidsUpdate', (roomName, bids) => {
-        setHouseBids(prevBids => ({
-          ...prevBids,
-          [roomName]: bids
-        }));
-      });
-    }
-  }, [socket, selectedRoom]);
-
-  
-  
-  
 
   const handleChange = (event) => {
     if (socket) {
-      socket.emit('subscribeToBids', selectedRoom);
-      socket.emit('joinRoom', event.target.value);
-      setSelectedRoom(event.target.value);
-
+      const newRoom = event.target.value;
+      setSelectedRoom(newRoom);
+      socket.emit('joinRoom', newRoom);
+      socket.emit('subscribeToBids', newRoom);
     }
   };
 
@@ -87,7 +66,7 @@ const MarketAnalysis = () => {
     if (socket) {
       const bidInput = document.getElementById('bid');
       const emailInput = document.getElementById('email');
-      const bid = bidInput.value.trim();
+      const bid = parseFloat(bidInput.value.trim());
       const email = emailInput.value.trim();
       const isNewBidHigher = isHigherBid(bid);
 
@@ -97,8 +76,8 @@ const MarketAnalysis = () => {
           email,
         };
         socket.emit('message', messageData, selectedRoom);
-        bidInput.value = ''; // Clear input after sending
-        emailInput.value = ''; // Clear input after sending
+        bidInput.value = '';
+        emailInput.value = '';
       } else {
         // Handle case where new bid is not higher
       }
@@ -131,10 +110,9 @@ const MarketAnalysis = () => {
             <h4>Budhistorik:</h4>
             {houseBids[selectedRoom] && (
               <ul>
-                {houseBids[selectedRoom].reverse().map((bid) => (
-                  <li key={bid.userId}>
-                    Budgivare: {bid.userId}
-                    Bud: {bid.bid}
+                {houseBids[selectedRoom].map((bid, index) => (
+                  <li key={index}>
+                    Budgivare: {bid.userId}, Bud: {bid.bid}
                     {isLoggedIn && <span>, Email: {bid.email}</span>}
                   </li>
                 ))}

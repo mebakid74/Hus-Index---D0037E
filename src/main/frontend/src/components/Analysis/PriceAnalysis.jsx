@@ -4,24 +4,14 @@ import './PriceAnalysis.css';
 import 'chartjs-adapter-date-fns';
 
 const PriceAnalysis = () => {
+  // State variables
   const [houseData, setHouseData] = useState([]);
   const [activeChart, setActiveChart] = useState('line-chart');
   const [lineChart, setLineChart] = useState(null);
   const [pieChart, setPieChart] = useState(null);
   const [stapleChart, setStapleChart] = useState(null); // State for the third chart
-  
 
- /* useEffect(() => {
-    fetch('http://localhost:8081/list_analysis')
-      .then(response => response.json())
-      .then(data => {
-        setHouseData(data);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  }, []); */
-
+   // Fetch data from the server
   const fetchData = async () => {
     try {
       const response = await fetch('http://localhost:8081/list_analysis');
@@ -32,10 +22,12 @@ const PriceAnalysis = () => {
     }
   };
 
+  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Render charts when houseData changes
   useEffect(() => {
     if (houseData.length > 0) {
       renderLineChart();
@@ -43,8 +35,6 @@ const PriceAnalysis = () => {
     }
   }, [houseData]);
 
- /* useEffect(() => {
-    if (houseData.length > 0) { */
 
     // Line Chart
     const renderLineChart = () => {
@@ -169,13 +159,13 @@ const PriceAnalysis = () => {
       });
       setPieChart(newPieChart);
     };
-  /*}, [houseData]);*/
 
+  // Toggle active chart
   const toggleChart = (chartId) => {
     setActiveChart(chartId);
   };
 
-  // Function to render staple chart
+  // Candle chart
   const renderStapleChart = () => {
     if (houseData.length > 0) {
       // Get the top 10 most expensive zip codes

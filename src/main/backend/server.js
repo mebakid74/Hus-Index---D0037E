@@ -9,6 +9,9 @@ const http = require('http');
 // Initializing Express app
 const app = express();
 
+// Configuring middleware
+app.use(express.json());
+
 
 const wsServer = http.createServer();
 const io = socketIO(wsServer, {
@@ -23,66 +26,84 @@ wsServer.listen(3000, () => {
     console.log(`WebSocket Server is running on port 3000`);
 });
 
-// Configuring middleware
-app.use(express.json());
 
-// Keep track of previous bids
-const roomHighestBids = {};
+
+const roomUserIds = {};
 
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    /* Handle joining a room
-    socket.on('joinRoom', (room) => {
-        console.log(`User joined room: ${room}`);
-        socket.join(room); // Join the specified room
-    }); */
-
-    socket.on('joinRoom', (room) => {
-        console.log(`User joined room: ${room}`);
-        socket.join(room);
-        if (!roomHighestBids[room]) {
-            roomHighestBids[room] = {
-                highestBid: 0,
-                bids: []
-            };
-        }
-        // Send the current highest bid and bid history to the user who just joined
-        socket.emit('chatMessage', { 
-            highestBid: roomHighestBids[room].highestBid,
-            bids: roomHighestBids[room].bids});
-    });
-
-    // Handle leaving a room
-    socket.on('leaveRoom', (room) => {
-        console.log(`User left room: ${room}`);
-        socket.leave(room); // Leave the specified room
-    });
-
-    /* Handle chat messages within a room
-    socket.on('chatMessage', (data) => {
-        console.log(`Message received in room ${data.room}: ${data.message}`);
-        io.to(data.room).emit('chatMessage', data); // Emit the message to all users in the room
-    }); */
-
-    socket.on('chatMessage', (data) => {
-    const bid = parseFloat(data.message);
-    if (bid > roomHighestBids[data.room].highestBid) {
-         roomHighestBids[data.room].highestBid = bid;
-    }
-    roomHighestBids[data.room].bids.push({ message: bid, user: socket.id });
-    io.to(data.room).emit('chatMessage', {
-        highestBid: roomHighestBids[data.room].highestBid,
-        bids: roomHighestBids[data.room].bids
-    });
-    console.log(`New bid in room ${data.room}: ${bid}`);
-    });
-
-    // Handle disconnection
     socket.on('disconnect', () => {
-        console.log('User disconnected');
+        console.log('A user disconnected');
     });
-});
+
+    socket.on('joinRoom', (roomName) => {
+        socket.leaveAll();
+        socket.join(roomName); // Join the specified room
+        console.log(`User joined room: ${roomName}`);
+
+        // Optionally, send a welcome message to the user joining the room
+        socket.emit('joinedRoom', roomName);
+
+        // Ensure the bids array is initialized for the room
+        if (!roomUserIds[roomName]) {
+            roomUserIds[roomName] = { nextUserId: 1, bids: [] };
+        }
+    });
+
+
+    socket.on('message', (data, roomName) => {
+        if (roomName) {
+            if (data.bid !== '' && data.email !== '') {
+                const { bid, email } = data;
+
+                // Get or create room user ID object
+                let roomUserIdsForRoom = roomUserIds[roomName] || { nextUserId: 1, bids: [] }; // Initialize nextUserId and bids
+                roomUserIds[roomName] = roomUserIdsForRoom; // Update roomUserIds
+
+                const userEntry = roomUserIdsForRoom[email] || {};
+                roomUserIdsForRoom[email] = userEntry; // Update user entry
+
+                // Assign or use existing user ID
+                if (!userEntry.userId) {
+                    userEntry.userId = roomUserIdsForRoom.nextUserId;
+                    roomUserIdsForRoom.nextUserId = roomUserIdsForRoom.nextUserId + 1; // Increment next ID
+                }
+                userEntry.bidCount = (userEntry.bidCount || 0) + 1; // Increment bid count
+
+                const userId = userEntry.userId;
+                const updatedBid = { userId, bid, email };
+
+                // Add the updated bid to the bids array for the room
+                roomUserIdsForRoom.bids.push(updatedBid);
+
+                // Broadcast the updated message with the user ID
+                io.to(roomName).emit('message', roomName, updatedBid);
+
+
+                const roomBids = (roomUserIds[roomName] && roomUserIds[roomName].bids) || [];
+                io.to(roomName).emit('message1', roomName, roomBids);
+
+                
+                console.log(`room ${roomName}:`, updatedBid);
+
+            } else {
+                console.error("Invalid message format. Missing bid or email data.");
+            }
+        } else {
+            console.error("Missing room name in message.");
+        }
+    });
+
+    socket.on('subscribeToBids', (roomName) => {
+        // Retrieve existing bids for the room (assuming you store them server-side)
+        const roomBids = (roomUserIds[roomName] && roomUserIds[roomName].bids) || [];
+        console.log(roomName, roomBids, "subscribe");
+        // Emit the retrieved bids to the subscribing client
+        socket.emit('bidsUpdate', roomName, roomBids);
+    });
+});   
+
 
 
 

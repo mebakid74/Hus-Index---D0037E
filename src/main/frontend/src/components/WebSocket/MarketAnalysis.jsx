@@ -1,94 +1,158 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const MarketAnalysis = () => {
-    const [room, setRoom] = useState('');
-    const [message, setMessage] = useState('');
-    // const [messages, setMessages] = useState([]);
-    const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [houseBids, setHouseBids] = useState({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState("");
 
-    const [bids, setBids] = useState([]);
-    const [highestBid, setHighestBid] = useState(0);
+  const handleLogin = () => {
+    setIsLoggedIn(!isLoggedIn);
+    console.log(isLoggedIn);
+  };
 
-    const connectToSocket = () => {
-        const newSocket = io('http://localhost:3000'); 
-        setSocket(newSocket);
+  useEffect(() => {
+    const newSocket = io('http://localhost:3000');
+    setSocket(newSocket);
 
-        newSocket.on('connect', () => {
-            console.log('Connected to WebSocket server');
-        });
-
-        newSocket.on('disconnect', () => {
-            console.log('Disconnected from WebSocket server');
-        });
-
-        newSocket.on('chatMessage', (data) => {
-            console.log(`Message received: ${data.message}`);
-            // setMessages([...messages, data]); // Add the received message to the message list
-            setHighestBid(data.highestBid);
-            setBids(data.bids);
-        });
+    return () => {
+      newSocket.disconnect();
     };
+  }, []);
 
-    const joinRoom = () => {
-        if (socket) {
-            socket.emit('joinRoom', room);
-            console.log(`Joined room: ${room}`);
-        }
+  
+  useEffect(() => {
+    if (socket) {
+      socket.on('message1', (roomName, updatedBid) => {
+        // Handle the received bid message here
+        setHouseBids(prevBids => ({
+          ...prevBids,
+          [roomName]: [...(prevBids[roomName] || []), updatedBid]
+        }));
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('message');
+      }
     };
+  }, [socket]);
 
-    const leaveRoom = () => {
-        if (socket) {
-            socket.emit('leaveRoom', room);
-            console.log(`Left room: ${room}`);
-        }
+  
+
+
+  useEffect(() => {
+    if (socket && selectedRoom !== "") {
+      socket.emit('subscribeToBids', selectedRoom);
+    }
+  
+    return () => {
+      // Clean up the subscription when socket or selectedRoom changes
+      if (socket && selectedRoom !== "") {
+        socket.off('bidsUpdate');
+      }
     };
+  }, [socket, selectedRoom]);
 
-    const sendMessage = () => {
-      /*  if (socket) {
-            socket.emit('chatMessage', { room, message }); // Send the message to the server
-            setMessage(''); // Clear the message input field
-        } */
-        const bid = parseFloat(message);
-        if (socket && !isNaN(bid) && bid > 0) {
-            socket.emit('chatMessage', { room, message: bid }); // Send the message to the server
-            setMessage(''); // Clear the message input field
-        } else {
-            alert("Please enter a valid bid");
-        }
-    };
 
-    return (
-        <div>
-            <select value={room} onChange={(e) => setRoom(e.target.value)}>
-                <option value="">Select a room</option>
-                <option value="1">Room 1</option>
-                <option value="2">Room 2</option>
-                <option value="3">Room 3</option>
-                <option value="4">Room 4</option>
-                <option value="5">Room 5</option>
-            </select>
-            <button onClick={connectToSocket}>Connect</button>
-            <button onClick={joinRoom}>Join Room</button>
-            <button onClick={leaveRoom}>Leave Room</button>
 
-            <div>
-                <h3>Högsta bud: ${highestBid}</h3>
-                <h4>Bud historik:</h4>
-            </div>
+  useEffect(() => {
+    if (socket && selectedRoom !== "") {
+      // Listen for bid updates
+      socket.emit('subscribeToBids', selectedRoom);
+      socket.on('bidsUpdate', (roomName, bids) => {
+        setHouseBids(prevBids => ({
+          ...prevBids,
+          [roomName]: bids
+        }));
+      });
+    }
+  }, [socket, selectedRoom]);
 
-            <div>
-                {bids.map((bid, index) => (
-                    <div key={index}>
-                        {bid.user}: {bid.message}
-                    </div>
+  
+  
+  
+
+  const handleChange = (event) => {
+    if (socket) {
+      socket.emit('subscribeToBids', selectedRoom);
+      socket.emit('joinRoom', event.target.value);
+      setSelectedRoom(event.target.value);
+
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (socket) {
+      const bidInput = document.getElementById('bid');
+      const emailInput = document.getElementById('email');
+      const bid = bidInput.value.trim();
+      const email = emailInput.value.trim();
+      const isNewBidHigher = isHigherBid(bid);
+
+      if (isNewBidHigher) {
+        const messageData = {
+          bid,
+          email,
+        };
+        socket.emit('message', messageData, selectedRoom);
+        bidInput.value = ''; // Clear input after sending
+        emailInput.value = ''; // Clear input after sending
+      } else {
+        // Handle case where new bid is not higher
+      }
+    } else {
+      console.error('Socket connection not established. Message cannot be sent.');
+    }
+  };
+
+  function isHigherBid(newBid) {
+    const highestBid = houseBids[selectedRoom]?.slice(-1)[0]?.bid || -Infinity;
+    return newBid > highestBid;
+  }
+
+  return (
+    <div>
+      <h1>Marknadsanalys</h1>
+      <select value={selectedRoom} onChange={handleChange}>
+        <option value="" disabled>Välj en fastighet</option>
+        <option value="1">Fastighet 1</option>
+        <option value="2">Fastighet 2</option>
+        <option value="3">Fastighet 3</option>
+        <option value="4">Fastighet 4</option>
+        <option value="5">Fastighet 5</option>
+      </select>
+
+      <div>
+        {selectedRoom && (
+          <>
+            <h3>Högsta bud: {houseBids[selectedRoom]?.slice(-1)[0]?.bid}</h3>
+            <h4>Budhistorik:</h4>
+            {houseBids[selectedRoom] && (
+              <ul>
+                {houseBids[selectedRoom].reverse().map((bid) => (
+                  <li key={bid.userId}>
+                    Budgivare: {bid.userId}
+                    Bud: {bid.bid}
+                    {isLoggedIn && <span>, Email: {bid.email}</span>}
+                  </li>
                 ))}
-            </div>
-            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ange ditt bud" />
+              </ul>
+            )}
+          </>
+        )}
+      </div>
 
-            <button onClick={sendMessage}>Skicka</button>
-        </div>
-    );
+      <form id="messageForm">
+        <input type="text" id="bid" name="bid" placeholder="Ange ditt bud" required />
+        <input type="email" id="email" name="email" placeholder="Skriv in din mailadress" required />
+        <button type="button" onClick={handleSendMessage}>Skicka Bud</button>
+      </form>
+
+      <button onClick={handleLogin}>{isLoggedIn ? "Admin logga ut" : "Admin Logga in"}</button>
+    </div>
+  );
 };
 
 export default MarketAnalysis;

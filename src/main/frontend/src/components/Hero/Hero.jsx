@@ -42,7 +42,7 @@ const Hero = () => {
                         </div>
                         <div className="flexCenter button">
                             {/*<a href="klicka: anlysera">Klicka här</a>*/}
-                            <Link to="/MarketAnalysis" target="_blank">Klicka här</Link>
+                            <Link to="/MarketAnalysis" >Klicka här</Link>
                         </div>
                     </div>
                 </div>
